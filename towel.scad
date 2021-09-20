@@ -2,7 +2,7 @@ use <MCAD/triangles.scad>
 
 $fn = 50;
 e = .01;
-dowelDia = 15.8; //mm, 5/8in
+dowelDia = 16; //mm, 5/8in
 gripThickness = 2.4;
 wallSpacing = 70;
 
@@ -60,13 +60,20 @@ module armHook() {
 */
 
 module armLock() {
+    baseTolerance = 0.5;
     difference() {
-        union() {
-            cube(size=[lockSize-lockCutoff+lockWallThick, lockSize+lockWallThick, insetDia], center=false);
-            mirror([0, 1, 0]) cube(size=[lockSize-lockCutoff+lockWallThick, lockSize+lockWallThick, insetDia], center=false);
+        translate([baseTolerance, 0, 0]) union() {
+            cube(size=[lockSize-lockCutoff+lockWallThick-baseTolerance, lockSize+lockWallThick, insetDia], center=false);
+            mirror([0, 1, 0]) cube(size=[lockSize-lockCutoff+lockWallThick-baseTolerance, lockSize+lockWallThick, insetDia], center=false);
         }
-        scale([1.05, 1.05, 1]) translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
+        
+        //Cutout to slide over the base lock
+        scale([1.1, 1.1, 1]) translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
+        
+        //Truncate the overlap a bit
+        color("red") translate([0, 0, insetDia/2+e])  cube(size=[lockSize, lockSize*5/4, insetDia+2*e], center=true);
     }
+    
 }
 
 module baseLock() {
@@ -138,12 +145,12 @@ module printBaseLock() {
 
 //view();
 printHolder();
-printBase();
+//printBase();
 //printBaseWithLock();
-printBaseLock();
+//printBaseLock();
 
 //translate([70, 0, 0]) base();
-//translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
+//color("red") translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
 //armLock();
 
 //triangle(10,5,1);
