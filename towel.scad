@@ -2,15 +2,15 @@ use <MCAD/triangles.scad>
 
 /* [What to Print] */
 //Do not print this one, for visualization purposes only
-visualize_assembly = false;
-arm = true;
-baseAndLock = true;
+visualize_assembly = 0; // [0:false, 1:true]
+arm = 1; // [0:false, 1:true]
+baseAndLock = 1; // [0:false, 1:true]
 //Useful if you want to print the base lock in a different orientation and attach it
-baseWithoutLock = false;
+baseWithoutLock = 0; // [0:false, 1:true]
 //Useful if you want to print the base lock in a different orientation and attach it
-lockForBase = false;
+lockForBase = 0; // [0:false, 1:true]
 //Print the standalone lock parts to make sure they're going to fit together well
-lockingTest = false;
+lockingTest = 0; // [0:false, 1:true]
 
 /* [Dowel] */
 //Dowel diamerter in mm
@@ -153,12 +153,12 @@ module printHolder() {
 }
 
 module printBase() {
-    translate([30, baseH/2, 0]) rotate([0, 0, -90]) base();
+    translate([0, baseH/2, 0]) rotate([0, 0, -90]) base();
 }
 
 //Not nearly as durable as printBase()
 module printBaseWithLock() {
-    translate([30, baseH/2, 0]) rotate([0, 0, -90]) baseWithLock();
+    translate([0, baseH/2, 0]) rotate([0, 0, -90]) baseWithLock();
 }
 
 module printBaseLock() {
@@ -187,11 +187,11 @@ if (arm) {
 }
 
 if (baseAndLock) {
-    translate([0, 0, baseD/2]) printBaseWithLock();
+    translate([baseW/2+armDep+10, 0, baseD/2]) printBaseWithLock();
 }
 
 if (baseWithoutLock) {
-    translate([0, 0, baseD/2]) printBase();
+    translate([baseW/2+armDep+10, 0, baseD/2]) printBase();
 }
 
 if (lockForBase) {
