@@ -35,28 +35,31 @@ baseW = 25;
 //Depth/thickness of base
 baseD = 2.4;
 
-/* [Lock] */
-//Height of the right triangles used in the locking mechanism
-lockSize = 5;
-//Amount of extra wall to surround the locking mechanism
-lockWallD = 3;
-//How much height of the triangles to cut off for the locking mechanism. Should be about lockSize/2
-lockCutoff = 2;
+/* [Dovetail] */
+//Height of the right triangles used in the dovetail
+dovetailSize = 5;
+//Amount of extra wall to surround the dovetail
+dovetailWallD = 3;
+//How much height of the triangles to cut off for the dovetail. Should be about dovetailSize/2
+dovetailCutoff = 2;
 //Height of the stopper on locking mechanism
-lockStopH = 2;
+dovetailStopH = 2;
 //Adjusts the PERCENTAGE (scale) tolerance between the locking pieces. Increase for looser fit.
-lockTolerance = 10;
+dovetailTolerance = 8;
 //Amount to trim the sharp dovetail edges; helps locking mechanism slide better
-dovetailTrim = .8;
+dovetailTrim = .4;
+// How far the friction stop bar should stick out; too big and you won't be able to slide things into place
+stopBar = .5;
 
 //Don't include things past here in customizer
 module blank() {}
 
-$fn = 50;
-e = .01;
+//+0 to prevent customizer from using these
+$fn = 100 + 0;
+e = .01 + 0;
 armDep = dowelDep+dowelBackD;
 insetDia = dowelDia + (dowelGripD*2);
-lockBackD = 1.2;
+lockBackD = 1.2 + 0;
 
 module inset() {
     difference() {
@@ -75,19 +78,19 @@ module arm() {
 
 module armLock() {
     baseTolerance = 0.5;
-    scalar = 1+(lockTolerance/100);
+    scalar = 1+(dovetailTolerance/100);
     
     difference() {
         translate([baseTolerance, 0, 0]) union() {
-            cube(size=[lockSize-lockCutoff+lockWallD-baseTolerance, lockSize+lockWallD, insetDia], center=false);
-            mirror([0, 1, 0]) cube(size=[lockSize-lockCutoff+lockWallD-baseTolerance, lockSize+lockWallD, insetDia], center=false);
+            cube(size=[dovetailSize-dovetailCutoff+dovetailWallD-baseTolerance, dovetailSize+dovetailWallD, insetDia], center=false);
+            mirror([0, 1, 0]) cube(size=[dovetailSize-dovetailCutoff+dovetailWallD-baseTolerance, dovetailSize+dovetailWallD, insetDia], center=false);
         }
         
         //Cutout to slide over the base lock
-        scale([scalar, scalar, 1]) translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
+        scale([scalar, scalar, 1]) translate([dovetailSize-dovetailCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
         
         //Truncate the overlap a bit
-        color("red") translate([0, 0, insetDia/2+e])  cube(size=[lockSize, lockSize*5/4, insetDia+2*e], center=true);
+        color("red") translate([0, 0, insetDia/2+e])  cube(size=[dovetailSize, dovetailSize*5/4, insetDia+2*e], center=true);
     }
     
 }
@@ -97,33 +100,36 @@ module baseLock() {
     
     difference() {
         union() {
-            triangle(lockSize,lockSize,insetDia);
-            mirror([0, 1, 0]) triangle(lockSize,lockSize,insetDia);
+            triangle(dovetailSize,dovetailSize,insetDia);
+            mirror([0, 1, 0]) triangle(dovetailSize,dovetailSize,insetDia);
             
             //stopper
-            translate([lockSize/2, 0, insetDia+(lockStopH)/2]) cube(size=[lockSize, lockSize*2, 2], center=true);
+            translate([dovetailSize/2, 0, insetDia+(dovetailStopH)/2]) cube(size=[dovetailSize, dovetailSize*2, 2], center=true);
         }
         
         //dovetail cutouts
-        translate([lockSize-lockCutoff, -lockSize-e, -e]) cube(size=[(lockSize+e)*2,(lockSize+e)*2,500]);
+        translate([dovetailSize-dovetailCutoff, -dovetailSize-e, -e]) cube(size=[(dovetailSize+e)*2,(dovetailSize+e)*2,500]);
         
-        //Flatten the dovetail edges by 0.5mm
-        translate([0, lockSize, insetDia/2-e]) cube(size=[trimSize, trimSize, insetDia+e], center=true);
-        translate([0, -lockSize, insetDia/2-e]) cube(size=[trimSize, trimSize, insetDia+e], center=true);
+        //Flatten the dovetail edges
+        translate([0, dovetailSize, insetDia/2-e]) cube(size=[trimSize, trimSize, insetDia+e], center=true);
+        translate([0, -dovetailSize, insetDia/2-e]) cube(size=[trimSize, trimSize, insetDia+e], center=true);
+        
+        //snapping ridge
+        translate([0, 0, 3.6]) rotate([90, 0, 0]) cylinder(d=stopBar*2, h=(dovetailSize)*2-trimSize-2.4, center=true);
     }
     //backing
-    translate([lockSize-lockCutoff, -lockSize, 0]) cube(size=[lockBackD, lockSize*2, insetDia+lockStopH]);
+    translate([dovetailSize-dovetailCutoff, -dovetailSize, 0]) cube(size=[lockBackD, dovetailSize*2, insetDia+dovetailStopH]);
 }
 
 module baseWithLock() {
     cube(size=[baseH, baseW, baseD], center=true); //base
-    translate([-baseH/2, 0, baseD/2+lockSize-lockCutoff]) rotate([0, 90, 0]) baseLock();
+    translate([-baseH/2, 0, baseD/2+dovetailSize-dovetailCutoff]) rotate([0, 90, 0]) baseLock();
 }
 
 module base() {
     difference() {
         cube(size=[baseH, baseW, baseD], center=true); //base
-        translate([-baseH/2, 0, baseD/2+lockSize-lockCutoff]) rotate([0, 90, 0]) baseLock();
+        translate([-baseH/2, 0, baseD/2+dovetailSize-dovetailCutoff]) rotate([0, 90, 0]) baseLock();
     }
 }
 
@@ -131,14 +137,14 @@ module holder() {
     inset();
     arm();
     //armHook();
-    translate([insetDia/2, armLen+insetDia/2+(lockSize-lockCutoff)+lockWallD/2, (dowelDep-dowelBackD)/2]) rotate([90, 0, -90]) armLock();
+    translate([insetDia/2, armLen+insetDia/2+(dovetailSize-dovetailCutoff)+dovetailWallD/2, (dowelDep-dowelBackD)/2]) rotate([90, 0, -90]) armLock();
     //base();
 }
 
 module view() {
     rotate([0, 90, 0]) holder();
     
-    extraLenSpace = lockSize-lockCutoff+lockWallD/2;
+    extraLenSpace = dovetailSize-dovetailCutoff+dovetailWallD/2;
     length = armLen+(insetDia+baseD)/2+extraLenSpace;
     shiftDown = (baseH-insetDia)/2;
     rotate([0, 90, 0]) {
@@ -163,20 +169,20 @@ module printBaseWithLock() {
 }
 
 module printBaseLock() {
-    translate([50, 0, insetDia+lockStopH]) rotate([180, 0, 0]) baseLock();
+    translate([50, 0, insetDia+dovetailStopH]) rotate([180, 0, 0]) baseLock();
 }
 
 //Print the lock parts separately to make sure they're going to fit
 module lockTest() {
     //translate([0, 0, 0]) rotate([0, 90, 0])
-    translate([0, 0, lockSize-lockCutoff+lockBackD]) rotate([0, 90, 0])  baseLock();
+    translate([0, 0, dovetailSize-dovetailCutoff+lockBackD]) rotate([0, 90, 0])  baseLock();
     translate([-10, 0, 0]) armLock();
 }
 
 //Visualize the lock part fitting together (for development)
 module lockVisualizer() {
-    color("red") translate([lockSize-lockCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
-    translate([10, 0, 0]) armLock();
+    color("red") translate([dovetailSize-dovetailCutoff-e, 0, 0]) mirror([1, 0, 0]) baseLock();
+    translate([5, 0, 0]) armLock();
 }
 
 if (visualize_assembly) {
@@ -203,8 +209,14 @@ if (lockingTest) {
     lockTest();
 }
 
+/*
+difference() {
+    lockVisualizer();
+    translate([0, -50/2, 0]) cube(size=[50, 50, 50], center=true);
+}
+*/
 
-//lockVisualizer();
+//translate([20, 0, 0]) baseLock();
 
 
 //Copied from <MCAD/triangles.scad> to avoid potential Thingiverse Customizer issues.
